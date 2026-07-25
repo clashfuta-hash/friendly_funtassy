@@ -12,6 +12,10 @@ from typing import Any, Dict, List
 #
 # competition_name is display-only (mirrors wembly_leagues_scrapers'
 # `league` field); competition_id is filled in only once resolved.
+#
+# NOTE: trimmed to fixtures kicking off on or after 2026-07-26 UTC.
+# Anything dated 2026-07-25 or earlier has been removed as no longer
+# "future" relative to that date.
 
 FIXTURES: List[Dict[str, Any]] = [
     # === PREMIER LEAGUE FIXTURES ===
@@ -59,22 +63,6 @@ FIXTURES: List[Dict[str, Any]] = [
     },
     # Aston Villa [citation:1][citation:5]
     {
-        "home_team": "Walsall",
-        "away_team": "Aston Villa",
-        "kickoff_utc": datetime(
-            2026, 7, 21, 18, 30, tzinfo=timezone.utc
-        ),  # 7:30pm BST = 6:30pm UTC
-        "competition_name": "Pre-Season Friendly",
-    },
-    {
-        "home_team": "Porto",
-        "away_team": "Aston Villa",
-        "kickoff_utc": datetime(
-            2026, 7, 25, 18, 0, tzinfo=timezone.utc
-        ),  # 7pm BST = 6pm UTC
-        "competition_name": "Pre-Season Friendly",
-    },
-    {
         "home_team": "Aston Villa",
         "away_team": "Real Sociedad",
         "kickoff_utc": datetime(2026, 7, 28, 18, 30, tzinfo=timezone.utc),
@@ -113,14 +101,6 @@ FIXTURES: List[Dict[str, Any]] = [
         "competition_name": "Pre-Season Friendly",
     },
     # Bournemouth [citation:1][citation:5]
-    {
-        "home_team": "St. Pauli",
-        "away_team": "Bournemouth",
-        "kickoff_utc": datetime(
-            2026, 7, 24, 15, 0, tzinfo=timezone.utc
-        ),  # 4pm BST = 3pm UTC
-        "competition_name": "Pre-Season Friendly",
-    },
     {
         "home_team": "Augsburg",
         "away_team": "Bournemouth",
@@ -165,14 +145,6 @@ FIXTURES: List[Dict[str, Any]] = [
         "competition_name": "Pre-Season Friendly",
     },
     # Brighton [citation:1][citation:5]
-    {
-        "home_team": "Annecy",
-        "away_team": "Brighton",
-        "kickoff_utc": datetime(
-            2026, 7, 25, 0, 0, tzinfo=timezone.utc
-        ),  # behind closed doors, time TBC
-        "competition_name": "Pre-Season Friendly",
-    },
     {
         "home_team": "Strasbourg",
         "away_team": "Brighton",
@@ -236,14 +208,6 @@ FIXTURES: List[Dict[str, Any]] = [
     },
     # Crystal Palace [citation:1][citation:5]
     {
-        "home_team": "Bromley",
-        "away_team": "Crystal Palace",
-        "kickoff_utc": datetime(
-            2026, 7, 25, 14, 0, tzinfo=timezone.utc
-        ),  # 3pm BST = 2pm UTC
-        "competition_name": "Pre-Season Friendly",
-    },
-    {
         "home_team": "Crystal Palace",
         "away_team": "Lens",
         "kickoff_utc": datetime(
@@ -268,20 +232,6 @@ FIXTURES: List[Dict[str, Any]] = [
         "competition_name": "Pre-Season Friendly",
     },
     # Everton [citation:1][citation:5]
-    {
-        "home_team": "Dundee",
-        "away_team": "Everton",
-        "kickoff_utc": datetime(
-            2026, 7, 18, 13, 0, tzinfo=timezone.utc
-        ),  # 2pm BST = 1pm UTC
-        "competition_name": "Pre-Season Friendly",
-    },
-    {
-        "home_team": "Bolton Wanderers",
-        "away_team": "Everton",
-        "kickoff_utc": datetime(2026, 7, 25, 14, 0, tzinfo=timezone.utc),
-        "competition_name": "Pre-Season Friendly",
-    },
     {
         "home_team": "Stoke City",
         "away_team": "Everton",
@@ -336,14 +286,6 @@ FIXTURES: List[Dict[str, Any]] = [
         "competition_name": "Pre-Season Friendly",
     },
     # Hull City [citation:1][citation:5]
-    {
-        "home_team": "Konyaspor",
-        "away_team": "Hull City",
-        "kickoff_utc": datetime(
-            2026, 7, 25, 15, 30, tzinfo=timezone.utc
-        ),  # 4:30pm BST = 3:30pm UTC
-        "competition_name": "Pre-Season Friendly",
-    },
     {
         "home_team": "Çaykur Rizespor",
         "away_team": "Hull City",
@@ -423,14 +365,6 @@ FIXTURES: List[Dict[str, Any]] = [
     },
     # Leeds United [citation:1][citation:5][citation:12]
     {
-        "home_team": "Wrexham",
-        "away_team": "Leeds United",
-        "kickoff_utc": datetime(
-            2026, 7, 25, 23, 30, tzinfo=timezone.utc
-        ),  # 12:30am BST July 26 = 11:30pm UTC July 25
-        "competition_name": "Pre-Season Friendly",
-    },
-    {
         "home_team": "Sunderland",
         "away_team": "Leeds United",
         "kickoff_utc": datetime(
@@ -465,14 +399,6 @@ FIXTURES: List[Dict[str, Any]] = [
         "competition_name": "Pre-Season Friendly",
     },
     # Liverpool [citation:1][citation:5][citation:12]
-    {
-        "home_team": "Liverpool",
-        "away_team": "Sunderland",
-        "kickoff_utc": datetime(
-            2026, 7, 25, 22, 0, tzinfo=timezone.utc
-        ),  # 11pm BST = 10pm UTC
-        "competition_name": "Pre-Season Friendly",
-    },
     {
         "home_team": "Liverpool",
         "away_team": "Wrexham",
@@ -543,20 +469,6 @@ FIXTURES: List[Dict[str, Any]] = [
     # Manchester United [citation:1][citation:5][citation:12]
     {
         "home_team": "Manchester United",
-        "away_team": "Wrexham",
-        "kickoff_utc": datetime(
-            2026, 7, 18, 16, 0, tzinfo=timezone.utc
-        ),  # 5pm BST = 4pm UTC
-        "competition_name": "Pre-Season Friendly",
-    },
-    {
-        "home_team": "Rosenborg",
-        "away_team": "Manchester United",
-        "kickoff_utc": datetime(2026, 7, 24, 16, 0, tzinfo=timezone.utc),
-        "competition_name": "Pre-Season Friendly",
-    },
-    {
-        "home_team": "Manchester United",
         "away_team": "Atletico Madrid",
         "kickoff_utc": datetime(
             2026, 8, 1, 13, 0, tzinfo=timezone.utc
@@ -586,14 +498,6 @@ FIXTURES: List[Dict[str, Any]] = [
         "competition_name": "Pre-Season Friendly",
     },
     # Newcastle United [citation:1][citation:5][citation:12]
-    {
-        "home_team": "Gateshead",
-        "away_team": "Newcastle United",
-        "kickoff_utc": datetime(
-            2026, 7, 25, 11, 30, tzinfo=timezone.utc
-        ),  # 12:30pm BST = 11:30am UTC
-        "competition_name": "Pre-Season Friendly",
-    },
     {
         "home_team": "Bristol City",
         "away_team": "Newcastle United",
@@ -629,22 +533,6 @@ FIXTURES: List[Dict[str, Any]] = [
         "competition_name": "Pre-Season Friendly",
     },
     # Nottingham Forest [citation:1][citation:5][citation:12]
-    {
-        "home_team": "Notts County",
-        "away_team": "Nottingham Forest",
-        "kickoff_utc": datetime(
-            2026, 7, 18, 14, 0, tzinfo=timezone.utc
-        ),  # 3pm BST = 2pm UTC
-        "competition_name": "Pre-Season Friendly",
-    },
-    {
-        "home_team": "Nottingham Forest",
-        "away_team": "Blackburn Rovers",
-        "kickoff_utc": datetime(
-            2026, 7, 22, 10, 0, tzinfo=timezone.utc
-        ),  # 11am BST = 10am UTC
-        "competition_name": "Pre-Season Friendly",
-    },
     {
         "home_team": "Vitoria de Guimaraes",
         "away_team": "Nottingham Forest",
@@ -682,12 +570,6 @@ FIXTURES: List[Dict[str, Any]] = [
         "competition_name": "Pre-Season Friendly",
     },
     # Sunderland [citation:1][citation:5][citation:12]
-    {
-        "home_team": "Sunderland",
-        "away_team": "Liverpool",
-        "kickoff_utc": datetime(2026, 7, 25, 22, 0, tzinfo=timezone.utc),
-        "competition_name": "Pre-Season Friendly",
-    },
     {
         "home_team": "Sunderland",
         "away_team": "Leeds United",
@@ -771,14 +653,6 @@ FIXTURES: List[Dict[str, Any]] = [
     # Source: Pazzidifanta, Sekbernews, OneFootball [citation:2][citation:6][citation:10]
     # AC Milan
     {
-        "home_team": "Celtic",
-        "away_team": "AC Milan",
-        "kickoff_utc": datetime(
-            2026, 7, 25, 15, 0, tzinfo=timezone.utc
-        ),  # 5pm CEST = 3pm UTC
-        "competition_name": "Pre-Season Friendly",
-    },
-    {
         "home_team": "AC Milan",
         "away_team": "Inter Milan",
         "kickoff_utc": datetime(
@@ -793,14 +667,6 @@ FIXTURES: List[Dict[str, Any]] = [
         "competition_name": "Pre-Season Friendly",
     },
     # Bologna
-    {
-        "home_team": "Bologna",
-        "away_team": "Iraklis",
-        "kickoff_utc": datetime(
-            2026, 7, 25, 14, 0, tzinfo=timezone.utc
-        ),  # 4pm CEST = 2pm UTC
-        "competition_name": "Pre-Season Friendly",
-    },
     {
         "home_team": "Brighton",
         "away_team": "Bologna",
@@ -820,22 +686,7 @@ FIXTURES: List[Dict[str, Any]] = [
         "kickoff_utc": datetime(2026, 8, 16, 17, 0, tzinfo=timezone.utc),
         "competition_name": "Pre-Season Friendly",
     },
-    # Fiorentina
-    {
-        "home_team": "Queens Park Rangers",
-        "away_team": "Fiorentina",
-        "kickoff_utc": datetime(2026, 7, 25, 14, 0, tzinfo=timezone.utc),
-        "competition_name": "Pre-Season Friendly",
-    },
     # Genoa
-    {
-        "home_team": "Genoa",
-        "away_team": "Vicenza",
-        "kickoff_utc": datetime(
-            2026, 7, 25, 15, 0, tzinfo=timezone.utc
-        ),  # 5pm CEST = 3pm UTC
-        "competition_name": "Pre-Season Friendly",
-    },
     {
         "home_team": "Bournemouth",
         "away_team": "Genoa",
@@ -871,14 +722,6 @@ FIXTURES: List[Dict[str, Any]] = [
     },
     # Juventus [citation:2][citation:6][citation:10]
     {
-        "home_team": "Standard Liege",
-        "away_team": "Juventus",
-        "kickoff_utc": datetime(
-            2026, 7, 25, 18, 0, tzinfo=timezone.utc
-        ),  # 8pm CEST = 6pm UTC
-        "competition_name": "Pre-Season Friendly",
-    },
-    {
         "home_team": "Chelsea",
         "away_team": "Juventus",
         "kickoff_utc": datetime(2026, 8, 5, 11, 30, tzinfo=timezone.utc),
@@ -890,45 +733,11 @@ FIXTURES: List[Dict[str, Any]] = [
         "kickoff_utc": datetime(2026, 8, 8, 0, 0, tzinfo=timezone.utc),
         "competition_name": "Pre-Season Friendly",
     },
-    # Lecce
-    {
-        "home_team": "Lecce",
-        "away_team": "NK Istra",
-        "kickoff_utc": datetime(
-            2026, 7, 25, 15, 30, tzinfo=timezone.utc
-        ),  # 5:30pm CEST = 3:30pm UTC
-        "competition_name": "Pre-Season Friendly",
-    },
-    # Parma
-    {
-        "home_team": "Trento",
-        "away_team": "Parma",
-        "kickoff_utc": datetime(
-            2026, 7, 25, 16, 0, tzinfo=timezone.utc
-        ),  # 6pm CEST = 4pm UTC, 45-min match
-        "competition_name": "Pre-Season Friendly",
-    },
     # Roma
     {
         "home_team": "Brighton",
         "away_team": "Roma",
         "kickoff_utc": datetime(2026, 8, 8, 14, 0, tzinfo=timezone.utc),
-        "competition_name": "Pre-Season Friendly",
-    },
-    # Sassuolo
-    {
-        "home_team": "Trento",
-        "away_team": "Sassuolo",
-        "kickoff_utc": datetime(
-            2026, 7, 25, 16, 0, tzinfo=timezone.utc
-        ),  # 45-min match
-        "competition_name": "Pre-Season Friendly",
-    },
-    # Torino
-    {
-        "home_team": "Torino",
-        "away_team": "Cittadella",
-        "kickoff_utc": datetime(2026, 7, 25, 15, 0, tzinfo=timezone.utc),
         "competition_name": "Pre-Season Friendly",
     },
     # Udinese
