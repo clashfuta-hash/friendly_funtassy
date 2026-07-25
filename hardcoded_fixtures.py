@@ -15,12 +15,6 @@ from typing import Any, Dict, List
 
 FIXTURES: List[Dict[str, Any]] = [
     {
-        "home_team": "Porto",
-        "away_team": "Aston Villa",
-        "kickoff_utc": datetime(2026, 7, 25, 18, 0, tzinfo=timezone.utc),
-        "competition_name": "Pre-Season Friendly",
-    },
-    {
         "home_team": "Tottenham",
         "away_team": "Auckland FC",
         "kickoff_utc": datetime(2026, 7, 26, 3, 30, tzinfo=timezone.utc),

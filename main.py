@@ -40,6 +40,11 @@ def seed_all(client: RustClient) -> None:
             kickoff_utc=fixture["kickoff_utc"],
             competition_name=fixture.get("competition_name", "Pre-Season Friendly"),
             source=config.FRIENDLY_SOURCE_TAG,
+            # This file is domestic club friendlies (EPL/Serie A pre-season
+            # clubs), not internationals -- must land in games/games_history,
+            # not fixtures/fixtures_history. Override per-fixture below if a
+            # non-domestic friendly is ever added to FIXTURES.
+            target_collection=fixture.get("target_collection", "games"),
         )
         if ok:
             seeded += 1

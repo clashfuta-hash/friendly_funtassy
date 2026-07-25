@@ -80,7 +80,13 @@ class RustClient:
         kickoff_utc: datetime,
         competition_name: str,
         source: str,
+        target_collection: str = "games",
     ) -> bool:
+        """target_collection: "games" for domestic league/club friendlies,
+        "fixtures" for internationals. Sent to the Rust API so /games/seed
+        writes (and idempotency-checks) the correct collection pair --
+        games/games_history vs fixtures/fixtures_history -- instead of
+        always defaulting to fixtures. See rust API's seed_fixture handler."""
         payload = {
             "matchId": match_id,
             "homeTeam": home_team,
@@ -91,6 +97,7 @@ class RustClient:
             "time": kickoff_utc.strftime("%H:%M"),
             "dateIso": kickoff_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
             "source": source,
+            "targetCollection": target_collection,
         }
         result = self._post("/games/seed", payload)
         if result is None:
