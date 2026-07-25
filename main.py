@@ -5,7 +5,7 @@ import sys
 
 import config
 from hardcoded_fixtures import FIXTURES
-from mongo_store import FixtureStore
+from rust_client import RustClient
 from resolver import resolve_pending
 
 logging.basicConfig(
@@ -25,56 +25,42 @@ def _build_match_id(home_team: str, away_team: str, kickoff_utc) -> str:
     return f"friendly_{digest}"
 
 
-def seed_all(store: FixtureStore) -> None:
-    """Seed every fixture in hardcoded_fixtures.py, but ONLY on first
-    creation. upsert_fixture() writes threesixtyfiveGameId into $set
-    unconditionally (by design -- see its docstring: that field is meant
-    to move forward as scrapers refresh odds/details for fixtures they
-    discover fresh each run). This repo's fixtures are never rediscovered
-    that way, so calling upsert_fixture again after the resolver has
-    already filled threesixtyfiveGameId in would stomp it back to None.
-    Checking get_fixture() first avoids that -- once seeded, a fixture is
-    never upserted again by this repo."""
+def seed_all(client: RustClient) -> None:
+    """Idempotency moved server-side -- /games/seed no-ops if matchId
+    already exists, so this no longer needs a get_fixture() pre-check."""
     seeded = 0
-    skipped = 0
     for fixture in FIXTURES:
         match_id = _build_match_id(
             fixture["home_team"], fixture["away_team"], fixture["kickoff_utc"]
         )
-        if store.get_fixture(match_id):
-            skipped += 1
-            continue
-
-        store.upsert_fixture(
+        ok = client.seed_fixture(
             match_id=match_id,
-            threesixtyfive_game_id=None,
             home_team=fixture["home_team"],
             away_team=fixture["away_team"],
             kickoff_utc=fixture["kickoff_utc"],
-            status="upcoming",
             competition_name=fixture.get("competition_name", "Pre-Season Friendly"),
             source=config.FRIENDLY_SOURCE_TAG,
         )
-        seeded += 1
+        if ok:
+            seeded += 1
+        else:
+            logger.error(
+                f"Failed to seed {match_id} -- Rust API unreachable or rejected"
+            )
 
-    logger.info(f"Seed complete: {seeded} newly inserted, {skipped} already existed")
+    logger.info(f"Seed pass complete: {seeded}/{len(FIXTURES)} confirmed with Rust API")
 
 
 def main() -> None:
-    if not config.MONGO_URI:
-        logger.error("MONGO_URI is not set")
+    if not config.FANCLASH_API:
+        logger.error("FANCLASH_API is not set")
         sys.exit(1)
 
-    store = FixtureStore(config.MONGO_URI)
-    seed_all(store)
+    client = RustClient(config.FANCLASH_API)
+    seed_all(client)
 
-    # Single pass, then exit -- this process is now invoked by cron on
-    # RESOLVE_POLL_INTERVAL_SECONDS' old cadence (see render.yaml), so it
-    # no longer owns its own sleep loop. seed_all() is idempotent (see its
-    # docstring) so re-seeding on every cron tick is harmless -- it only
-    # ever inserts fixtures that don't already exist yet.
     try:
-        resolve_pending(store)
+        resolve_pending(client)
     except Exception:
         logger.exception("Unhandled error in resolve_pending")
         sys.exit(1)

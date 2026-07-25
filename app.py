@@ -8,7 +8,7 @@ from flask import Flask, jsonify
 
 import config
 from main import seed_all
-from mongo_store import FixtureStore
+from rust_client import RustClient
 from resolver import resolve_pending
 
 logging.basicConfig(
@@ -20,30 +20,30 @@ logger = logging.getLogger("friendlies_standalone.app")
 
 app = Flask(__name__)
 
-_store: FixtureStore | None = None
+_client: RustClient | None = None
 
 
-def _get_store() -> FixtureStore:
-    global _store
-    if _store is None:
-        if not config.MONGO_URI:
-            raise RuntimeError("MONGO_URI is not set")
-        _store = FixtureStore(config.MONGO_URI)
-    return _store
+def _get_client() -> RustClient:
+    global _client
+    if _client is None:
+        if not config.FANCLASH_API:
+            raise RuntimeError("FANCLASH_API is not set")
+        _client = RustClient(config.FANCLASH_API)
+    return _client
 
 
 @app.get("/")
 def health() -> tuple:
-    # Render (and most uptime checks) hit "/" -- keep it cheap, no DB call.
+    # Cheap, no network call -- same as before.
     return jsonify(status="ok"), 200
 
 
 @app.get("/run")
 def run() -> tuple:
     try:
-        store = _get_store()
-        seed_all(store)
-        resolve_pending(store)
+        client = _get_client()
+        seed_all(client)
+        resolve_pending(client)
     except Exception:
         logger.exception("Unhandled error during /run")
         return jsonify(status="error"), 500
