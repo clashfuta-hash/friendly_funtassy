@@ -6,7 +6,7 @@ import sys
 import config
 from hardcoded_fixtures import FIXTURES
 from mongo_store import FixtureStore
-from resolver import run_forever
+from resolver import resolve_pending
 
 logging.basicConfig(
     level=logging.INFO,
@@ -38,7 +38,9 @@ def seed_all(store: FixtureStore) -> None:
     seeded = 0
     skipped = 0
     for fixture in FIXTURES:
-        match_id = _build_match_id(fixture["home_team"], fixture["away_team"], fixture["kickoff_utc"])
+        match_id = _build_match_id(
+            fixture["home_team"], fixture["away_team"], fixture["kickoff_utc"]
+        )
         if store.get_fixture(match_id):
             skipped += 1
             continue
@@ -65,7 +67,17 @@ def main() -> None:
 
     store = FixtureStore(config.MONGO_URI)
     seed_all(store)
-    run_forever(store)
+
+    # Single pass, then exit -- this process is now invoked by cron on
+    # RESOLVE_POLL_INTERVAL_SECONDS' old cadence (see render.yaml), so it
+    # no longer owns its own sleep loop. seed_all() is idempotent (see its
+    # docstring) so re-seeding on every cron tick is harmless -- it only
+    # ever inserts fixtures that don't already exist yet.
+    try:
+        resolve_pending(store)
+    except Exception:
+        logger.exception("Unhandled error in resolve_pending")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

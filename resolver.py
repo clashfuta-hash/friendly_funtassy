@@ -20,10 +20,14 @@ def _name_matches(candidate: Optional[str], names: List[str]) -> bool:
     if not candidate:
         return False
     candidate_lower = candidate.lower()
-    return any(n.lower() in candidate_lower or candidate_lower in n.lower() for n in names)
+    return any(
+        n.lower() in candidate_lower or candidate_lower in n.lower() for n in names
+    )
 
 
-def _find_match(fixture: Dict[str, Any], games: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+def _find_match(
+    fixture: Dict[str, Any], games: List[Dict[str, Any]]
+) -> Optional[Dict[str, Any]]:
     """Two-sided match: both home AND away must line up against the
     hardcoded fixture's team names (via aliases). Single-sided matching
     is what leagues_scraper.py's threesixtyfive.filter_games_by_club_names
@@ -39,8 +43,12 @@ def _find_match(fixture: Dict[str, Any], games: List[Dict[str, Any]]) -> Optiona
         game_home = (game.get("homeCompetitor") or {}).get("name")
         game_away = (game.get("awayCompetitor") or {}).get("name")
 
-        direct = _name_matches(game_home, home_names) and _name_matches(game_away, away_names)
-        swapped = _name_matches(game_home, away_names) and _name_matches(game_away, home_names)
+        direct = _name_matches(game_home, home_names) and _name_matches(
+            game_away, away_names
+        )
+        swapped = _name_matches(game_home, away_names) and _name_matches(
+            game_away, home_names
+        )
 
         if direct or swapped:
             return game
@@ -118,7 +126,12 @@ def resolve_pending(store: FixtureStore) -> None:
 
 
 def run_forever(store: FixtureStore) -> None:
-    logger.info(f"Resolver starting, polling every {config.RESOLVE_POLL_INTERVAL_SECONDS}s")
+    """Dead code now that main.py calls resolve_pending() directly and
+    cron owns the interval (see render.yaml). Left in place in case you
+    ever want to run this as a worker again instead of cron."""
+    logger.info(
+        f"Resolver starting, polling every {config.RESOLVE_POLL_INTERVAL_SECONDS}s"
+    )
     while True:
         try:
             resolve_pending(store)
