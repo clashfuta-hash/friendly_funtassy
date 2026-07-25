@@ -1,0 +1,18 @@
+services:
+  - type: worker
+    name: wembly-friendlies-resolver
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: "true"
+      - key: MONGO_URI
+        sync: false
+      - key: MONGO_DB
+        value: "clashdb"
+      - key: MONGO_COLLECTION
+        value: "games"
+      - key: RESOLVE_POLL_INTERVAL_SECONDS
+        value: "300"
+    numInstances: 1
