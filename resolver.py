@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional
 from sources import threesixtyfive
 import config
 from rust_client import RustClient
-from team_aliases import aliases_for
+from team_aliases import aliases_for, _normalize
 
 logger = logging.getLogger("friendlies_standalone.resolver")
 
@@ -16,17 +16,34 @@ RESOLVE_GRACE_HOURS = 6
 
 
 def _name_matches(candidate: Optional[str], names: List[str]) -> bool:
+    """Case- and diacritic-insensitive substring match in either
+    direction. Uses team_aliases._normalize() (strips accents/diacritics,
+    lowercases) rather than a plain .lower(), so display-name variants
+    like "Kasımpaşa"/"Kasimpasa" or "Famalicão"/"Famalicao" -- which
+    365Scores and our own hardcoded_fixtures.py don't always spell the
+    same way -- still match without needing a hand-written alias for
+    every character-encoding variant. Genuinely different names (not
+    just spelling drift) still need a real entry in TEAM_ALIASES."""
     if not candidate:
         return False
-    candidate_lower = candidate.lower()
+    candidate_norm = _normalize(candidate)
     return any(
-        n.lower() in candidate_lower or candidate_lower in n.lower() for n in names
+        _normalize(n) in candidate_norm or candidate_norm in _normalize(n)
+        for n in names
     )
 
 
 def _find_match(
     fixture: Dict[str, Any], games: List[Dict[str, Any]]
 ) -> Optional[Dict[str, Any]]:
+    """Two-sided match: both home AND away must line up against the
+    hardcoded fixture's team names (via aliases). Single-sided matching
+    is what leagues_scraper.py's threesixtyfive.filter_games_by_club_names
+    uses for the leagues bucket, but that's only safe there because it's
+    filtering to a known club list -- here we're matching one specific
+    fixture against every friendly on earth for that day, so both sides
+    must agree or a same-day coincidence (two different fixtures sharing
+    one participant) could resolve wrong."""
     home_names = aliases_for(fixture["homeTeam"])
     away_names = aliases_for(fixture["awayTeam"])
 
@@ -66,6 +83,17 @@ def resolve_pending(client: RustClient) -> None:
         by_date.setdefault(fixture["date"], []).append(fixture)
 
     for date_str, fixtures in by_date.items():
+        # fetch_games_by_date_range with start_date == end_date is a
+        # single call to _fetch_games_for_single_date under the hood --
+        # this repo only ever resolves one day at a time (a fixture's own
+        # match day), so the date-range looping that function exists for
+        # never actually triggers here. Using the real shared function
+        # rather than reimplementing the same request. See that
+        # function's docstring for the client-side date filter it now
+        # applies -- 365Scores silently ignores startDate/endDate when a
+        # `competitions` filter is present, so the games list returned
+        # here is already restricted to date_str, not just "whatever
+        # 365Scores decided today was".
         games = threesixtyfive.fetch_games_by_date_range(
             config.RESOLVE_COMPETITION_IDS,
             date_str,
