@@ -124,11 +124,22 @@ def _normalize(text: str) -> str:
     İ -> i̇, an i plus a combining dot, not a plain "i"). Both are
     special-cased here before the general NFKD pass so "Kasımpaşa" and
     "Kasimpasa" compare equal.
+
+    Whitespace (and '.'/'-' separators) is stripped entirely rather than
+    just collapsed. 365Scores sometimes renders multi-word club names
+    with no space at all (e.g. "CaykurRizespor" for our "Çaykur
+    Rizespor"), which otherwise breaks the substring check in
+    _name_matches even though every letter lines up -- "caykur rizespor"
+    is not a substring of "caykurrizespor" once one side has a space and
+    the other doesn't. Dropping separators on both sides makes the
+    comparison robust to that styling difference without needing a
+    hand-written alias per affected club.
     """
     text = text.replace("ı", "i").replace("İ", "I")
     decomposed = unicodedata.normalize("NFKD", text)
     stripped = "".join(ch for ch in decomposed if not unicodedata.combining(ch))
-    return stripped.lower()
+    lowered = stripped.lower()
+    return "".join(ch for ch in lowered if ch not in " .-")
 
 
 def aliases_for(name: str) -> List[str]:

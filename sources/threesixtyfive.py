@@ -193,17 +193,33 @@ def _fetch_games_for_single_date(
         on_requested_date = sum(
             1 for g in games if (g.get("startTime") or "").startswith(date_str)
         )
+        mismatch = bool(games) and on_requested_date == 0
         logger.info(
             f"_fetch_games_for_single_date({competition_ids}, requested={date_str}): "
             f"{len(games)} games returned, {on_requested_date}/{len(games)} actually "
             f"dated {date_str}"
-            + (
-                " -- MISMATCH: 365Scores may be ignoring the date param"
-                if games and on_requested_date == 0
-                else ""
-            )
+            + (" -- MISMATCH: 365Scores ignored the date param" if mismatch else "")
         )
-        return games
+
+        # ENFORCE the date client-side instead of trusting the response.
+        # The diagnostic above confirmed 365Scores silently ignores
+        # startDate/endDate whenever a `competitions` filter is present
+        # and just returns its own idea of "today" -- previously this
+        # function returned that unfiltered list, so any caller resolving
+        # a date other than 365Scores' actual "today" (e.g. a retry a day
+        # after kickoff, or any date during a startDate/endDate window
+        # scrape) silently got the wrong day's games instead of an empty
+        # result, and either matched nothing (looked like "not found yet"
+        # until the grace window expired and abandoned it) or, worse,
+        # risked matching against an unrelated same-named fixture. If the
+        # response is mismatched, only games actually dated date_str
+        # survive the filter below -- if that means 0 (as it will be on
+        # every mismatched call, since 365Scores didn't return date_str's
+        # games at all), callers correctly see "no games" rather than a
+        # different day's slate.
+        if mismatch:
+            return []
+        return [g for g in games if (g.get("startTime") or "").startswith(date_str)]
 
     except requests.exceptions.RequestException as e:
         logger.error(f"Failed to fetch games from 365Scores for {date_str}: {e}")
