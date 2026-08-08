@@ -428,20 +428,34 @@ def fetch_game_details(
         return None
 
 
-def _lineup_has_real_squad(lineup: Optional[Dict[str, Any]]) -> bool:
+def _lineup_has_real_squad(
+    lineup: Optional[Dict[str, Any]], roster: Dict[Any, Dict[str, Any]]
+) -> bool:
     """
-    True only if a lineup object actually has player entries in it.
+    True only if a lineup object has at least one player entry that ALSO
+    resolves to a real name in `roster` (the top-level game["members"]
+    list fetch_lineups() joins against).
 
-    365Scores can return a non-null lineups object on a competitor BEFORE
-    the official squad is published -- e.g. {"formation": "", "members": []}.
-    That object is truthy (`if not lineup` sees it as present), but carries
-    zero real squad data. Treat that as "not ready" so callers never
-    mistake a shell object for a real, storable lineup.
+    Checking len(members) > 0 alone isn't enough: 365Scores can populate
+    a lineup's `members` array with player IDs before the top-level
+    roster those IDs join against is itself published. That produces a
+    non-empty `members` list -- e.g. [{"id": 4471928}, {"id": 4471931}] --
+    where every single entry is a placeholder ID with nothing in roster
+    to resolve it to an actual name. The old member-count-only check
+    treated that as a real, storable squad; it isn't -- it's just a
+    different shape of not-ready-yet. Requiring at least one ID to
+    actually resolve against roster is what confirms 365Scores has
+    published real player data, not just placeholder slots.
     """
     if not lineup:
         return False
     members = lineup.get("members") or []
-    return len(members) > 0
+    if not members:
+        return False
+    return any(
+        (player.get("id") in roster) and roster[player.get("id")].get("name")
+        for player in members
+    )
 
 
 def fetch_lineups(
@@ -452,13 +466,15 @@ def fetch_lineups(
 
     Returns None if lineups aren't genuinely published yet -- either the
     key is missing entirely, OR 365Scores has only returned an empty
-    pre-publish placeholder (non-null object, but zero members) on BOTH
-    sides. Callers must treat None as "try again later, nothing to
-    store" -- this function will never return a result where both sides
-    have zero members, since that shape gets permanently persisted
-    downstream with no retry mechanism once forwarded.
+    pre-publish placeholder (zero members), OR the `members` array is
+    non-empty but every entry is an unresolved placeholder ID with no
+    matching name in the top-level roster -- on BOTH sides. Callers must
+    treat None as "try again later, nothing to store" -- this function
+    will never return a result where neither side has at least one
+    NAMED player, since that shape gets permanently persisted downstream
+    with no retry mechanism once forwarded.
 
-    Returns (on success -- at least one side has a real squad):
+    Returns (on success -- at least one side has a real, name-resolved squad):
         {
             "fixture_id": "wc26_<game_id>",
             "home": {
@@ -487,28 +503,36 @@ def fetch_lineups(
     home_lineups = home_competitor.get("lineups")
     away_lineups = away_competitor.get("lineups")
 
-    # FIX: check for actual squad content, not just object presence. A
-    # pre-publish placeholder dict is truthy but has zero real players --
-    # the old `if not home_lineups and not away_lineups` check let that
-    # straight through, which is exactly what produced empty stored
-    # lineups for squad-rotated friendlies.
-    if not _lineup_has_real_squad(home_lineups) and not _lineup_has_real_squad(
-        away_lineups
+    # Player names live in a separate top-level "members" array on the
+    # game object, keyed by the same "id" used inside lineups.members[].
+    # The lineup entries themselves never include a name field, so we
+    # have to join them here. Built BEFORE the readiness check now --
+    # _lineup_has_real_squad() needs roster to confirm each side's
+    # `members` entries actually resolve to real players, not just that
+    # the array is non-empty. See its docstring for why member-count
+    # alone was insufficient.
+    roster = {m["id"]: m for m in game.get("members", []) if "id" in m}
+
+    # FIX: check for actual, NAME-RESOLVED squad content, not just
+    # object presence or member count. A pre-publish placeholder dict is
+    # truthy but has zero real players ({"formation": "", "members": []}),
+    # and even a non-empty `members` list can be nothing but unresolved
+    # placeholder IDs before 365Scores publishes the roster they join
+    # against. The old `if not home_lineups and not away_lineups` check
+    # let the first shape straight through; plain len(members) > 0 would
+    # have let the second shape through too. Both are what produced
+    # empty/nameless stored lineups for squad-rotated friendlies.
+    if not _lineup_has_real_squad(home_lineups, roster) and not _lineup_has_real_squad(
+        away_lineups, roster
     ):
         home_member_count = len((home_lineups or {}).get("members") or [])
         away_member_count = len((away_lineups or {}).get("members") or [])
         logger.debug(
             f"Lineups not yet published for {game_id} "
-            f"(home_members={home_member_count}, away_members={away_member_count}) "
-            f"-- will retry later"
+            f"(home_members={home_member_count}, away_members={away_member_count}, "
+            f"roster_size={len(roster)}) -- will retry later"
         )
         return None
-
-    # Player names live in a separate top-level "members" array on the
-    # game object, keyed by the same "id" used inside lineups.members[].
-    # The lineup entries themselves never include a name field, so we
-    # have to join them here.
-    roster = {m["id"]: m for m in game.get("members", []) if "id" in m}
 
     def _attach_names(lineup: Optional[Dict[str, Any]]) -> Dict[str, Any]:
         if not lineup:
